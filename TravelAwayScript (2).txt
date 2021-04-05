@@ -1,0 +1,175 @@
+USE [master]
+GO
+
+Create database TravelAwayDB
+GO
+
+Use [TravelAwayDB]
+GO
+
+--Drop table Customer
+CREATE table Role(
+RoleID TINYINT CONSTRAINT pk_RoleId PRIMARY KEY,
+RoleName Varchar(15) not null
+)
+GO
+
+INSERT INTO Role(RoleID,RoleName) Values (1,'Customer')
+INSERT INTO Role(RoleID,RoleName) Values (2,'Employee')
+Go
+
+Create table Customer(
+[CustomerID] INTEGER CONSTRAINT Pk_CustomerID PRIMARY KEY IDENTITY(1000,1),
+[RoleID] TINYINT CONSTRAINT fk_RoleID REFERENCES Role(RoleID),
+[FirstName] Varchar(20) NOT NULL,
+[LastName] Varchar(20) NOT NULL,
+[EmailID] VARCHAR(20) CONSTRAINT uk_EmailID UNIQUE NOT NULL,
+[Password] VARCHAR(20) NOT NULL,
+[Gender] VARCHAR(10) NOT NULL,
+CONSTRAINT chk_Gender CHECK(Gender in('MALE','FEMALE')),
+[ContactNumber] NUMERIC(10) CONSTRAINT uk_ContactNo UNIQUE NOT NULL,
+[DateOfBirth] DATE CONSTRAINT chk_DateOfBirth CHECK(DateOfBirth<GETDATE()) NOT NULL,
+[Address] VARCHAR(200) NOT NULL)
+GO
+
+
+Create table Employee(
+[EmployeeID] INTEGER CONSTRAINT pk_EmployeeID PRIMARY KEY IDENTITY(100,1),
+[RoleID] TINYINT CONSTRAINT fk_RID REFERENCES Role(RoleID),
+[EmailID] VARCHAR(20) UNIQUE NOT NULL,
+[Password] VARCHAR(20) NOT NULL)
+GO
+
+--DROP TABLE PackageCategory
+Create table PackageCategory(
+[CategoryID] TINYINT CONSTRAINT pk_CategoryID PRIMARY KEY IDENTITY,
+[CategoryName] VARCHAR(20) NOT NULL)
+GO
+--Alter table PackageCategory Drop Column CategoryType
+--DROP TABLE Packages
+Create table Packages(
+[PackageID] TINYINT CONSTRAINT pk_PackageID PRIMARY KEY IDENTITY,
+[CategoryID] TINYINT CONSTRAINT fk_PackageCategoryID REFERENCES PackageCategory(CategoryID) NOT NULL,
+[PackageName] VARCHAR(50) NOT NULL,
+[Ptype] Varchar(10) NOT NULL,
+[PackageDescription] VARCHAR(500) NOT NULL
+)
+GO
+--Drop Table PackageDetails
+Create table PackageDetails(
+[PackageDetailID] TINYINT CONSTRAINT pk_PackageDetailsID PRIMARY KEY IDENTITY,
+[PackageID] TINYINT CONSTRAINT fk_PackID REFERENCES Packages(PackageID) NOT NULL,
+[PackageName] VARCHAR(20) NOT NULL,
+[Places] VARCHAR(100) NOT NULL,
+[Description] VARCHAR(500) NOT NULL,
+[Days] TINYINT NOT NULL,
+[Nights] TINYINT NOT NULL,
+[Price] NUMERIC(7) NOT NULL,
+[Accomodations] VARCHAR(15) NOT NULL
+)
+GO
+
+CREATE TABLE BookingDetails(
+BookingId INTEGER PRIMARY KEY IDENTITY(2000,1),
+CustomerId INTEGER CONSTRAINT fk_cID REFERENCES Customer(customerID),
+PackageDetailID TINYINT CONSTRAINT fk_PDetailID REFERENCES PackageDetails(PackageDetailID),
+ContactNo NUMERIC(10) NOT NULL,
+Address VARCHAR(50) NOT NULL,
+DateOfTravel DATE NOT NULL,
+NoOfAdults INTEGER NOT NULL,
+NoOfChildren INTEGER,
+BookingStatus VARCHAR(10) NOT NULL,
+EmailId VARCHAR(20) CONSTRAINT emailid_fk REFERENCES Customer(emailID)
+);
+GO
+
+CREATE TABLE Hotel(
+HotelID INTEGER CONSTRAINT pk_hotelId PRIMARY KEY IDENTITY,
+HotelName Varchar(30) not null,
+HotelRating INTEGER NOT NULL,
+SingleRoomPrice Numeric(8) NOT NULL,
+DoubleRoomPrice Numeric(8) NOT NULL,
+DeluxeRoomPrice Numeric(8) not null,
+SuiteRoomPrice Numeric(8) not null,
+City VARCHAR(30) not null,
+)
+go
+CREATE TABLE Accomodations(
+AccomodationID INTEGER PRIMARY KEY IDENTITY(100,1),
+HotelID INTEGER CONSTRAINT fk_hotlId REFERENCES Hotel(HotelID),
+BookingId INTEGER CONSTRAINT booking_fk REFERENCES BookingDetails(bookingId), 
+NoOfRooms INTEGER NOT NULL,
+AccomodationCost INTEGER NOT NULL,
+);
+GO
+
+CREATE TABLE Payment(
+PaymentId INTEGER PRIMARY KEY identity(5000,1),
+BookingId INTEGER CONSTRAINT fk_bookingId REFERENCES BookingDetails(BookingId),
+AccomodationId INTEGER CONSTRAINT fk_AccId REFERENCES Accomodations(AccomodationID),
+PackageDetailID TINYINT CONSTRAINT fk_pdID REFERENCES PackageDetails(PackageDetailID),
+CustomerId INTEGER CONSTRAINT fk_custid REFERENCES Customer(customerID),
+FinalPrice INTEGER NOT NULL,
+PaymentStatus Varchar(20) not null,
+BookingStatus VARCHAR(10)
+);
+GO
+
+CREATE TABLE CustomerCare(
+CustomerCareID INTEGER CONSTRAINT pk_CustomercareID PRIMARY KEY,
+BookingId INTEGER CONSTRAINT fk_BID REFERENCES BookingDetails(BookingId),
+CustomerStatus VARCHAR(10) CONSTRAINT ck_cstatus CHECK (CustomerStatus IN('assigned','in progress','closed')) NOT NULL,
+AssigneeId INTEGER CONSTRAINT fk_AssigneeID REFERENCES Employee(EmployeeID),
+QandA VARCHAR(500),
+);
+go
+
+CREATE TABLE Rating
+(
+	[BookingId] INTEGER CONSTRAINT fk_BRatingID REFERENCES BookingDetails(BookingId),
+	[RatingId] INTEGER CONSTRAINT pk_RatingID PRIMARY KEY IDENTITY,
+	[ReviewRating] TINYINT CONSTRAINT chk_Rating_Rating CHECK(ReviewRating BETWEEN 0 AND 5) DEFAULT 0 NOT NULL,
+	[ReviewComments] nVARCHAR(500)
+)
+GO
+
+
+SET IDENTITY_INSERT Customer ON
+Insert into Customer(CustomerID,RoleID,FirstName,LastName,EmailID,PassWord,Gender,ContactNumber,DateOfBirth,Address) Values (1000,1,'Albert','John','albert@gmail.com','LILAS@1234','MALE',9867675633,'1963-12-23','Carrera 52 con Ave. Bolívar #65-98 Llano Largo')
+SET IDENTITY_INSERT Customer OFF
+go
+
+Insert into Customer(RoleID,FirstName,LastName,EmailID,PassWord,Gender,ContactNumber,DateOfBirth,Address) Values (1,'Franken','John','frankent@gmail.com','Frank@1234','MALE',9867676733,'1970-12-10','Fauntleroy, AB Circus')
+Insert into Customer(RoleID,FirstName,LastName,EmailID,PassWord,Gender,ContactNumber,DateOfBirth,Address) Values (1,'Ross','Taylor','ross@gmail.com','ross@123','FEMALE',8075646733,'2000-12-09','Cerrito 333')
+Insert into Customer(RoleID,FirstName,LastName,EmailID,PassWord,Gender,ContactNumber,DateOfBirth,Address) Values (1,'Harry','Potter','harry@gmail.com','harry@124','MALE',9867676735,'2002-11-03','Hogwartz, London')\
+go
+
+SET IDENTITY_INSERT Employee OFF
+
+INSERT INTO Employee(RoleID,EmailID,Password) Values (2,'admin1@gmail.com','admin1@123')
+Insert into Employee(RoleID,EmailID,Password) Values(2,'admin2@gmail.com','admin2@123')
+GO
+
+SET IDENTITY_INSERT PackageCategory OFF
+INSERT INTO PackageCategory(CategoryName) Values ('Adventure')
+INSERT INTO PackageCategory(CategoryName) Values ('Nature')
+INSERT INTO PackageCategory(CategoryName) Values ('Village')
+INSERT INTO PackageCategory(CategoryName) Values ('Religious')
+INSERT INTO PackageCategory(CategoryName) Values ('Wildlife')
+Go
+--select * from PackageCategory
+
+SET IDENTITY_INSERT Packages OFF
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (1,'Andaman and Nicobar','DOM','Andaman and Nicobar Islands featuring palm-fringed beaches with spotless stretches of white sands, an uninterrupted presence of peace, and crystal clear turquoise waters all around - Andaman is a true example of what you call Tropical Paradise.')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (1,'America','INT','The place which never sleeps.')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (2,'North-East India','DOM','Known as the chicken head of India.A variety of natural life an local environment makes it an awesome place.')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (2,'Iceland','INT','There’s a reason that Iceland is called the Land of Fire and Ice. The country’s landscapes include waterfalls, craters, lava fields, icebergs, and more!')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (3,'South India','DOM','A combination of peacefull environment and traditional lives makes it an greeny place.')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (3,'Romania','INT','Maramures is a geographical, historical and ethno-cultural region in northern Romania where you can see an abundance of wooden churches, including the highest and the oldest one, 8 of which belong to the UNESCO patrimony.')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (4,'Saudi Arabia','INT','Mecca is the holiest city in the religion of Islam. It is located on the Arabian Peninsula 210 miles to the south of Medina.')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (4,'Israel','INT','The Wailing Wall is a place of prayer that has long been sacred to Jewish people.')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (5,'Africa','INT','The country is home to one of the most famous national parks in the world the Masai Mara!')
+Insert into Packages(CategoryID,PackageName,Ptype,PackageDescription) Values (5,'Sri Lanka','INT','Sri Lanka is a hot spot for some of the finest wildlife in South Asia. It has a wide variety of animals including big game and marine life.')
+--Select * from Packages
+go
+
