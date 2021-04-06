@@ -1,0 +1,203 @@
+----Register .html------------------------------------
+<div class="container">
+  <h1>Registration Form</h1>
+  <form [formGroup]="registerForm" (ngSubmit)="SubmitForm(registerForm)">
+    <div class="form-group">
+      <label>First name</label>
+      <input type="text" class="form-control" formControlName="fName">
+      <p *ngIf="registerForm.controls.fName.errors?.required &&  registerForm.controls.fName.touched"
+        class="alert alert-danger">This field is required!</p>
+      <p *ngIf="registerForm.controls.fName.errors?.pattern &&  registerForm.controls.fName.touched"
+        class="alert alert-danger">
+        Please enter valid First name.
+      </p>
+    </div>
+    <div class="form-group">
+      <label>Last Name</label>
+      <input type="text" class="form-control" formControlName="lName">
+      <p *ngIf="registerForm.controls.lName.errors?.required &&  registerForm.controls.lName.touched"
+        class="alert alert-danger">This field is required!</p>
+      <p *ngIf="registerForm.controls.lName.errors?.pattern &&  registerForm.controls.lName.touched"
+        class="alert alert-danger">
+        Please enter valid Last name.
+      </p>
+    </div>
+
+    <div class="form-group">
+
+      <label>EmailID</label>
+      <input type="text" class="form-control" formControlName="emailId">
+      <p *ngIf="registerForm.controls.emailId.errors?.required &&  registerForm.controls.emailId.touched"
+        class="alert alert-danger">This field is required!</p>
+      <p *ngIf="registerForm.controls.emailId.errors?.pattern &&  registerForm.controls.emailId.touched"
+        class="alert alert-danger">
+        Email id is not entered in proper format
+      </p>
+
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" class="form-control" formControlName="password">
+      <p *ngIf="registerForm.controls.password.errors?.required &&  registerForm.controls.password.touched"
+        class="alert alert-danger">This field is required!</p>
+      <p *ngIf="registerForm.controls.password.errors?.minlength &&  registerForm.controls.password.touched"
+        class="alert alert-danger">Minimum 8 Characters Required</p>
+      <p *ngIf="registerForm.controls.password.errors?.maxlength &&  registerForm.controls.password.touched"
+        class="alert alert-danger">Maximum 16 Characters Allowed</p>
+    </div>
+    <div class="form-group">
+      <label>Confirm Password</label>
+      <input type="password" class="form-control" formControlName="cPassword">
+      <p *ngIf="registerForm.controls.cPassword.errors?.required &&  registerForm.controls.cPassword.touched"
+      class="alert alert-danger">This field is required!</p>
+    </div>
+    <div class="form-group">
+      <label>Gender</label>
+      <input type="radio" formControlName="gender" name="gender" value="M" id="M" />
+      <label for="M">Male</label>
+      <input type="radio" formControlName="gender" name="gender" value="F" id="F" />
+      <label for="F">Female</label>
+    </div>
+    <div *ngIf="registerForm.controls.gender.invalid && registerForm.controls.gender.touched"
+      class="alert alert-danger">
+      Gender required.
+    </div>
+
+    <div class="form-group">
+      <label>Contact Number</label>
+      <input type="text" class="form-control" formControlName="mobile">
+      <p *ngIf="registerForm.controls.mobile.errors?.required &&  registerForm.controls.mobile.touched"
+      class="alert alert-danger">This field is required!</p>
+      <p *ngIf="registerForm.controls.mobile.errors?.pattern &&  registerForm.controls.mobile.touched"
+      class="alert alert-danger">
+      Enter Valid Contact Information.
+    </p>
+    </div>
+    <div class="form-group">
+      <label>Date of Birth</label>
+      <input type="date" class="form-control" formControlName="dateOfbirth">
+      <p *ngIf="registerForm.controls.dateOfbirth.errors?.dateError &&  registerForm.controls.dateOfbirth.touched"
+        class="alert alert-danger">{{registerForm.controls.dateOfbirth.errors?.dateError.message}}</p>
+    </div>
+    <div class="form-group">
+      <label>Address</label>
+      <input type="text" class="form-control" formControlName="address">
+      <p *ngIf="registerForm.controls.address.errors?.required &&  registerForm.controls.address.touched"
+        class="alert alert-danger">This field is required!</p>
+        <p *ngIf="registerForm.controls.address.errors?.pattern &&  registerForm.controls.address.touched"
+        class="alert alert-danger">
+        Enter Valid Address Information.
+      </p>
+    </div>
+    <button type="submit" [disabled]="!registerForm.valid">Register User</button>
+  </form>
+  <div>
+    {{msg}}
+  </div>
+  <br />
+</div>
+
+
+
+-----------------------register.ts---------------------------------
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder, Validators, FormControl, PatternValidator, AbstractControl } from '@angular/forms';
+
+
+@Component({
+  selector: 'app-register',
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css']
+})
+export class RegisterComponent implements OnInit {
+
+  
+  registerForm: FormGroup;
+  
+  msg: string;
+  
+  constructor(private formBuilder: FormBuilder) {}
+  ngOnInit() {
+    this.registerForm = this.formBuilder.group({
+      fName:['',[Validators.required,Validators.pattern("^[a-zA-Z]{1,20}$")]],
+      lName:['',[Validators.required,Validators.pattern("^[a-zA-Z]{1,20}$")]],
+      emailId: ['',[Validators.required,Validators.pattern("^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$")]],
+      gender: ['',[Validators.required]],
+      password: ['',[Validators.required, Validators.minLength(8),Validators.maxLength(16)]],
+      cPassword: ['', Validators.required],
+      mobile:['',[Validators.required,Validators.pattern("^((\\+91-?))?[1-9]{1}[0-9]{9}$")]],
+      dateOfbirth: ['',[checkDate,Validators.required]],
+      address: ['',[Validators.required,Validators.pattern("^[#.0-9a-zA-Z\s,-]+$")]]
+    },{validators: this.passwordCheck.bind(this)});
+  }
+  passwordCheck(formGroup:FormGroup){
+    const { value: password}= formGroup.get('password');
+    const { value: cPassword}= formGroup.get('cPassword');
+    return password===cPassword?null:{message:"Password do not match"};
+  }
+ // SubmitForm(form: FormGroup) {
+   
+   // if (this.registerForm.valid) {
+     // this.msg = "Signup Successful"
+   // }
+   // else {
+     // this.msg="Try again Later"
+   // }
+  //}
+  SubmitForm(form: FormGroup) {
+    console.log(form.value.fName);
+    console.log(form.value.lName);
+    console.log(form.value.emailId);
+    console.log(form.value.gender);
+    console.log(form.value.password);
+    console.log(form.value.mobile);
+    console.log(form.value.dateOfbirth);
+    console.log(form.value.address);
+  }
+
+}
+function checkDate(control: FormControl) {
+  var currentDate = new Date();
+  var givenDate = new Date(control.value)
+  console.log(currentDate);
+  console.log(givenDate);
+  if (givenDate <= currentDate || givenDate == null) {
+    return null
+  }
+  else {
+    return {
+      dateError: {
+        message: "Enter a date less than today's date"
+      }
+    };
+  }
+}
+
+
+
+-----approuting .ts--------------------------------------------
+
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
+import { AppComponent } from './app.component';
+import { RegisterComponent } from './Customer/register/register.component';
+import { LoginComponent } from './Customer/login/login.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    RegisterComponent,
+    LoginComponent
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
